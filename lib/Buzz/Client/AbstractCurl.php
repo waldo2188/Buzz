@@ -55,6 +55,14 @@ abstract class AbstractCurl extends AbstractClient
     {
         $pos = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
 
+        // fixes bug https://sourceforge.net/p/curl/bugs/1204/
+        $version = curl_version();
+        if (version_compare($version['version'], '7.30.0', '<')) {
+            $pos = strlen($raw) - curl_getinfo($curl, CURLINFO_SIZE_DOWNLOAD);
+        } else {
+            $pos = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
+        }
+        
         $response->setHeaders(static::getLastHeaders(rtrim(substr($raw, 0, $pos))));
         $response->setContent(strlen($raw) > $pos ? substr($raw, $pos) : '');
     }
